@@ -1,6 +1,7 @@
 # Valheim Character Forge
 <hr />
-Built with Blazor and ElectronNET, and based on a similar GitHub project, https://github.com/byt3m/Valheim-Character-Editor .
+Built with Blazor and ElectronNET, and based on a similar GitHub project, https://github.com/byt3m/Valheim-Character-Editor . Download the compiled version at https://www.nexusmods.com/valheim/mods/222/
+<br />
 <br />
 This repository is licensed under the GNU General Public License v3.0.
 <br />
