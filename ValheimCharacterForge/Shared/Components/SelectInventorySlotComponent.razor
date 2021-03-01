@@ -1,0 +1,55 @@
+﻿<button class="@Class" @onclick="@OnSlotClicked">
+    <div>
+        @if (IsEmpty)
+        {
+            <span>Empty Slot</span>
+        }
+        else
+        {
+            @ItemName
+            <br />
+            @Quantity
+        }
+    </div>
+</button>
+
+<style>
+    .btn-disabled {
+        background-color: rgb(255, 174, 174);
+        color: black;
+        text-wrap:normal;
+        border: 1px solid black;
+    }
+
+    .btn-enabled {
+        background-color: rgb(164, 255, 171);
+        color: black;
+        border: 1px solid black;
+    }
+
+    .disabled.btn-disabled {
+        border: 1px solid black;
+        pointer-events: none;
+        cursor:default;
+    }
+</style>
+@code {
+    [Parameter] public string ItemName { get; set; }
+    [Parameter] public int Quantity { get; set; }
+    [Parameter] public bool IsEmpty { get; set; }
+    [Parameter] public (int Column, int Row) Position { get; set; }
+    [Parameter]
+    public EventCallback<(int Column, int Row)> OnSelected { get; set; }
+
+    public string Class => IsEmpty ? "btn btn-success btn-enabled" : "btn btn-danger btn-disabled disabled";
+
+    private void OnSlotClicked()
+    {
+        if (!IsEmpty)
+        {
+            return;
+        }
+
+        OnSelected.InvokeAsync(Position);
+    }
+}

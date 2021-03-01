@@ -1,0 +1,297 @@
+﻿@page "/"
+
+@using ValheimCharacterForge.Classes
+@using ValheimCharacterForge.Models
+@using System.Linq
+@using ElectronNET.API
+@using ElectronNET.API.Entities
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+@inject IToastService toastService
+@inject CharacterSingeton CharService
+
+<header>
+    <div class="container-fluid p-3 text-center page-header">
+        <h1>Valheim Character Forge</h1>
+    </div>
+</header>
+<br />
+
+
+@if (LoadedCharacters)
+{
+    //if our characters are loaded, display the list to select from
+    <div class="col-lg" style="margin-bottom:20px;text-align:center">
+        <div class="table-responsive" style="padding-right: 4px">
+            <table class="table table-sm table-hover table-striped cam-table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Characters)
+                    {
+                        <tr>
+                            <td>@item.Data.Name</td>
+                            <td><button type="button" class="btn btn-primary" @onclick="(() => SelectCharacter(item))">Select</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+}
+else if (CharacterSelected)
+{
+<div class="form-group inner-center text-center">
+    <div class="inner-center text-center">
+        <span>Character is loaded.</span>
+    </div>
+    <br />
+    <button class="btn btn-success text-center" @onclick="(() => SaveChanges())">Save All Changes</button>
+    <small class="form-text text-muted">WARNING: Backup save files BEFORE making changes.</small>
+</div>
+}
+else
+{
+    <div class="form-group inner-center text-center">
+        <div class="inner-center text-center">
+            <button type="button" class="btn btn-primary" @onclick="GetDirectory">Select Valheim Save Location</button>
+            <small class="form-text text-muted">Select the location where the character files are stored for Valheim.</small>
+            <small class="form-text text-muted">Example : C:\Users\{usernamehere}\AppData\LocalLow\IronGate\Valheim\characters</small>
+        </div>
+
+    </div>
+}
+
+<style>
+    .control-section.multiline {
+        margin-top: 20px;
+    }
+
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .wrapper {
+        width: 45%;
+        margin-left: 200px;
+    }
+
+    .changed {
+        background-color: rgb(174, 255, 174);
+    }
+
+    .selectionText {
+        margin: 10px;
+        width: 100px;
+        font-size: 13px;
+    }
+
+    .e-grid td.e-active {
+        background-color: rgba(0, 255, 255, 0.55);
+    }
+
+    .apply-limit {
+        margin-top: 10px;
+    }
+
+    .control-label {
+        padding: 24px 0px 10px 0px;
+        font-size: 12px;
+    }
+
+    .property {
+        padding-left: 10px;
+        padding-bottom: 20px;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .e-edit:before {
+        content: '\e78f';
+        font-size: x-large;
+    }
+
+    .cam-table {
+        border: 1.5px solid #212529;
+        margin-right: 4px;
+        box-shadow: rgba(128, 128, 128, 0.43) 4px 4px;
+    }
+
+    .link-outline-primary {
+        color: #212529;
+        border-color: #212529;
+        border: 1px solid #212529;
+        box-shadow: rgba(128, 128, 128, 0.43) 2px 2px;
+        transition: .5s;
+        background-color: white;
+    }
+
+        .link-outline-primary:hover {
+            color: whitesmoke;
+            background-color: #212529;
+            border-color: #212529;
+            border: 1px solid #212529;
+            box-shadow: rgba(128, 128, 128, 1) 3px 3px;
+            transition: .5s;
+        }
+</style>
+
+@code {
+    private Character[] Characters;
+    private string[] Beards;
+    private string[] Hairs;
+    private string[] HairColors;
+
+    string SelectedDirectory = "";
+
+    private bool LoadedCharacters = false;
+    private bool CharacterSelected = false;
+
+    string debug = "None";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Task.Run(() => LoadPageDetails().ConfigureAwait(false));
+
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError("There was an error loading the page. Please try again momentarily.", "Error Loading Page");
+        }
+    }
+
+    async Task LoadPageDetails()
+    {
+        try
+        {
+            if (CharService.Character is not null)
+            {
+                CharacterSelected = true;
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException != null)
+            {
+                toastService.ShowError("There was an error loading the page. Please try again momentarily.", "Error");
+            }
+            else
+            {
+                toastService.ShowError("There was an error loading the page. Please try again momentarily.", "Error");
+            }
+        }
+
+    }
+
+    private async void GetDirectory()
+    {
+        try
+        {
+            //string _appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            //string _folderPath = System.IO.Path.Combine(_appDataPath, @"\LocalLow\IronGate\Valheim\characters\");
+
+            var mainWindow = Electron.WindowManager.BrowserWindows.First();
+            var options = new OpenDialogOptions
+            {
+                Properties = new OpenDialogProperty[] {
+                        OpenDialogProperty.openDirectory,
+                    }
+            };
+
+            var _temp = (await Electron.Dialog.ShowOpenDialogAsync(mainWindow, options));
+            var _selectedDirectory = _temp?.FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(_selectedDirectory))
+            {
+
+                String dir = _selectedDirectory; // Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"AppData\LocalLow\IronGate\Valheim\characters");
+
+                String[] fchFiles = System.IO.Directory.GetFiles(dir, "*.fch");
+                if (fchFiles.Length == 0)
+                {
+                    //MessageBox.Show("No character data files found.", "ERROR", MessageBoxButtons.OK);
+                    //Application.Exit();
+                }
+
+                // Create a Customization.Character class for each identified FCH file and read everything
+                Characters = new Character[fchFiles.Length];
+                for (int i = 0; i < fchFiles.Length; i++)
+                {
+                    byte[] fbytes = System.IO.File.ReadAllBytes(fchFiles[i]);
+                    if (fbytes.Length == 0)
+                    {
+                        //MessageBox.Show("Could not read file \"" + fchFiles[i] + "\".", "ERROR", MessageBoxButtons.OK);
+                        continue;
+                    }
+
+                    Characters[i] = new Character();
+                    Characters[i].File = fchFiles[i];
+                    Characters[i].Data = Parser.CharacterReadData(fbytes);
+                    // TODO check if data is correct
+                }
+
+                Beards = ValheimEngine.BeardsUI;
+                Hairs = ValheimEngine.HairsUI;
+
+                HairColors = new string[HairColorPresets.GetHairColorPresets.Count];
+                for (int i = 0; i < HairColorPresets.GetHairColorPresets.Count; i++)
+                    HairColors[i] = HairColorPresets.GetHairColorPresets.ElementAt(i).Name;
+
+                debug = Characters.Length.ToString();
+                LoadedCharacters = true;
+                SelectedDirectory = _selectedDirectory;
+
+                toastService.ShowSuccess("Character list was loaded successfully.", "List Loaded");
+
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException != null)
+            {
+                toastService.ShowError("There was an error loading the page. Please try again momentarily.", "Error");
+            }
+            else
+            {
+                toastService.ShowError("There was an error loading the page. Please try again momentarily.", "Error");
+            }
+        }
+
+    }
+
+    private void SelectCharacter(Character character)
+    {
+        CharService.Character = character;
+
+        CharService.KnownMaterials = CharService.Character.Data.Inventory.Select(a => a.Name).Distinct().OrderBy(a => a).ToArray();
+
+        CharacterSelected = true;
+        LoadedCharacters = false;
+        toastService.ShowSuccess(character.Data.Name + " selected.", "Character Selected");
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SaveChanges()
+    {
+        CharService.WriteCustomization();
+        toastService.ShowSuccess(CharService.Character.Data.Name + " was saved.", "Character Saved");
+        InvokeAsync(StateHasChanged);
+    }
+}

@@ -1,0 +1,79 @@
+﻿@using ValheimCharacterForge.Classes
+@inherits LayoutComponentBase
+@inject CharacterSingeton charServ 
+
+<div class="page">
+    <div class="main">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+            <div class="bg-dark">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Main</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/appearance">Appearance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/inventory">Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/skills">Skills</a>
+                    </li>
+                </ul>
+                
+            </div>
+            
+            @*<button class="navbar-toggler" style="float:right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>*@
+        </nav>
+
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+
+<BlazoredToasts ShowProgressBar="true" />
+
+<style>
+    .blazored-toast-container {
+        z-index: 99999;
+    }
+
+    .c-link {
+        color: lightgray;
+    }
+
+        .c-link:hover {
+            color: white;
+        }
+
+    .navbar-collapse.collapse {
+        display: block !important;
+    }
+
+    .navbar-nav > li, .navbar-nav {
+        float: left !important;
+    }
+
+        .navbar-nav.navbar-right:last-child {
+            margin-right: -15px !important;
+        }
+
+    .navbar-right {
+        float: right !important;
+    }
+</style>
+
+@code {
+    private bool collapseNavMenu = false;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse navbar-collapse bg-dark" : "bg-dark";
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

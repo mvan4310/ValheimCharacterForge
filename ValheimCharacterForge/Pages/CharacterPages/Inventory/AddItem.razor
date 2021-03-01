@@ -1,0 +1,243 @@
+﻿@page "/inventory/add"
+
+@using ValheimCharacterForge
+@using ValheimCharacterForge.Shared.Components
+@using ValheimCharacterForge.Models
+@using ValheimCharacterForge.Classes
+@using System.Linq
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+@inject IToastService toastService
+@inject CharacterSingeton CharService
+
+@if (CharService.Character is not null && KnownItems.Length > 0)
+{
+    <header>
+        <div class="container-fluid p-3 text-center page-header">
+            <h1>Add New Item to Inventory </h1>
+            <div class="row no-print">
+            </div>
+        </div>
+    </header>
+
+    <div class="col-lg" style="margin-bottom:20px;text-align:center">
+        <EditForm Model="SelectedItem">
+            <DataAnnotationsValidator />
+            <form>
+                <div class="col-lg-10 inner-center">
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group text-left">
+                                <label>Item</label>
+                                <div class="input-group mb-lg-2">
+                                    <InputSelect TValue="string" class="form-control" @bind-Value="@SelectedItem">
+                                        @foreach (var item in KnownItems)
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <small id="req" class="form-text text-muted">Required</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group text-left">
+                                <label>Quantity</label>
+                                <div class="input-group mb-lg-2">
+                                    <input type="number" class="form-control" @bind-value="@Quantity" />
+                                </div>
+                                <small id="req" class="form-text text-muted">Required</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group text-left">
+                                <label>Quality</label>
+                                <div class="input-group mb-lg-2">
+                                    <input type="number" class="form-control" @bind-value="@Quality" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group text-left">
+                                <label>Select Inventory Slot (column, row)</label>
+                                <div class="grid-container">
+                                    @for (int i = 0; i < InventoryRows; i++)
+                                    {
+                                        for (int ii = 0; ii < InventoryColumns; ii++)
+                                        {
+                                            var _pos = new Tuple<int, int>(ii, i);
+                                            var _taken = CharService.Character.Data.Inventory.SingleOrDefault(a => a.Pos.Item1 == _pos.Item1 && a.Pos.Item2 == _pos.Item2);
+
+                                            if (_taken is null)
+                                            {
+                                                @*<button class="btn btn-success">@_pos</button>*@
+                                                <SelectInventorySlotComponent IsEmpty="true" Position="(ii, i)"></SelectInventorySlotComponent>
+                                            }
+                                            else
+                                            {
+                                                @*<button class="btn btn-danger" disabled>@_pos</button>*@
+                                                <SelectInventorySlotComponent IsEmpty="false" ItemName="@_taken.Name" Quantity="@_taken.Stack" Position="(ii, i)"></SelectInventorySlotComponent>
+                                            }
+                                        }
+                                    }
+                                    @*<button class="btn">(0, 0)</button>
+        <button class="btn">(1, 0)</button>
+        <button class="btn">(2, 0)</button>
+        <button class="btn">(3, 0)</button>
+        <button class="btn">(4, 0)</button>
+        <button class="btn">(5, 0)</button>
+        <button class="btn">(6, 0)</button>
+        <button class="btn">(7, 0)</button>
+
+        <button class="btn">(0, 1)</button>
+        <button class="btn">(1, 1)</button>
+        <button class="btn">(2, 1)</button>
+        <button class="btn">(3, 1)</button>
+        <button class="btn">(4, 1)</button>
+        <button class="btn">(5, 1)</button>
+        <button class="btn">(6, 1)</button>
+        <button class="btn">(7, 1)</button>
+
+        <button class="btn">(0, 2)</button>
+        <button class="btn">(1, 2)</button>
+        <button class="btn">(2, 2)</button>
+        <button class="btn">(3, 2)</button>
+        <button class="btn">(4, 2)</button>
+        <button class="btn">(5, 2)</button>
+        <button class="btn">(6, 2)</button>
+        <button class="btn">(7, 2)</button>*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <br />
+            <div class="row">
+                <div class="col-lg inner-center">
+                    <button class="btn btn-success" type="submit" disabled="@IsSaving" @onclick="@SaveItem">Add Item to Inventory</button>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col-lg inner-center">
+                    @if (IsSaving)
+                    {
+                        <span style="font-weight:bold;color:darkgreen;font-size:larger;text-align:center;">Saving Now... Please Wait.</span>
+                    }
+                </div>
+            </div>
+        </EditForm>
+    </div>
+
+}
+else
+{
+    <p style="text-align:center">Please load a character on the main screen first.</p>
+}
+
+<style>
+    .control-section.multiline {
+        margin-top: 20px;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: 100px 100px 100px 100px 100px 100px 100px 100px;
+    }
+
+    .apply-limit {
+        margin-top: 10px;
+    }
+
+    .control-label {
+        padding: 24px 0px 10px 0px;
+        font-size: 12px;
+    }
+
+    .property {
+        padding-left: 10px;
+        padding-bottom: 20px;
+        font-weight: 600;
+        font-size: 15px;
+    }
+</style>
+
+@code {
+    bool IsSaving = false;
+    bool IsLoading = true;
+    int InventoryColumns = 8;
+    int InventoryRows = 3;
+
+    private string[] KnownItems = new string[1] { "None" };
+    private string SelectedItem = "";
+    private int Quantity = 1;
+    private int Quality = 1;
+
+    protected override async void OnParametersSet()
+    {
+        try
+        {
+            await Task.Run(() => LoadPageDetails().ConfigureAwait(false));
+        }
+        catch (Exception ex)
+        {
+            if (ex.InnerException != null)
+            {
+                toastService.ShowError(ex.InnerException.Message, "Error");
+            }
+            else
+            {
+                toastService.ShowError(ex.Message, "Error");
+            }
+        }
+    }
+
+    async Task LoadPageDetails()
+    {
+        KnownItems = Enum.GetNames(typeof(KnownItemsEnum)).OrderBy(a => a).ToArray();
+
+        IsLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SaveItem()
+    {
+        if (Quality <= 0)
+        {
+            Quality = 1;
+        }
+        if (Quantity <= 0)
+        {
+            Quantity = 1;
+        }
+
+        if (!string.IsNullOrWhiteSpace(SelectedItem))
+        {
+            CharacterData.Item item = new CharacterData.Item()
+            {
+                CrafterId = 0,
+                Durability = 100,
+                Equipped = false,
+                Name = SelectedItem,
+                Quality = Quality,
+                Stack = Quantity,
+                Pos = new Tuple<int, int>(7, 2)
+            };
+
+            CharService.Character.Data.Inventory.Add(item);
+            toastService.ShowSuccess("Item Added", "Added");
+            navigationManager.NavigateTo("/inventory/");
+        }
+        else
+        {
+            toastService.ShowWarning("Select an item to add, then try again", "No Item Selected to Add");
+        }
+    }
+}
