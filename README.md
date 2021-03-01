@@ -3,7 +3,7 @@
 Built with Blazor and ElectronNET, and based on a similar GitHub project, https://github.com/byt3m/Valheim-Character-Editor .
 <br />
 This repository is licensed under the GNU General Public License v3.0.
-
+<br />
 <br />
 Valheim Character Forge is a utility to add, modify, and remove items in your character's inventory, and to modify the skill levels of your character. Built with Blazor and ElectronNET, this editor is based upon another similar editor (byt3m/Valheim-Character-Editor (github.com) ), and the source code the repository for this editor is available at mvan4310/ValheimCharacterForge (github.com) .
 
