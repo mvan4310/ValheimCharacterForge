@@ -1,0 +1,78 @@
+﻿@page "/appearance"
+
+@using ValheimCharacterForge
+@using ValheimCharacterForge.Models
+@using ValheimCharacterForge.Classes
+@using System.Linq
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+@inject IToastService toastService
+@inject CharacterSingeton CharService
+
+@if (CharService.Character is not null)
+{
+    <header>
+        <div class="container-fluid p-3 text-center page-header">
+            <h1>Appearance Data </h1>
+            <small id="req" class="form-text text-muted">Appearance related changes are still a work in progress. </small>
+        </div>
+    </header>
+
+    <div class="form-group inner-center text-center">
+        <form>
+            <div class="col-lg-10 inner-center">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group text-left">
+                            <label>Beard</label>
+                            <div class="input-group mb-lg-2">
+                                <span class="form-control">@CharService.Character.Data.Beard</span>
+                                @*<InputSelect TValue="string" class="form-control" @bind-Value="@CharService.Character.Data.Beard">
+            @foreach (var item in ValheimEngine.BeardsInternal)
+            {
+                <option value="@item">@item</option>
+            }
+        </InputSelect>*@
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group text-left">
+                            <label>Hair</label>
+                            <div class="input-group mb-lg-auto">
+                                <span class="form-control">@CharService.Character.Data.Hair</span>
+                                @*<InputSelect TValue="string" class="form-control" @bind-Value="@CharService.Character.Data.Hair">
+            @foreach (var item in ValheimEngine.HairsInternal)
+            {
+                <option value="@item">@item</option>
+            }
+        </InputSelect>*@
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group text-left">
+                            <label>Hair Color</label>
+                            <div class="input-group mb-lg-auto">
+                                <span class="form-control">Incomplete</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr />
+        <hr />
+        <br />
+    </div>
+}
+else
+{
+    <p style="text-align:center">Please load a character on the main screen first.</p>
+}
+
+<style>
+</style>
+
+@code {
+
+}

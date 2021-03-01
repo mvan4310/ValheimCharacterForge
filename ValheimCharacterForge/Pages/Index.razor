@@ -2,7 +2,9 @@
 
 @using ValheimCharacterForge.Classes
 @using ValheimCharacterForge.Models
+@using ValheimCharacterForge.Shared.Components
 @using System.Linq
+@using System.Text.RegularExpressions
 @using ElectronNET.API
 @using ElectronNET.API.Entities
 @inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
@@ -14,8 +16,6 @@
         <h1>Valheim Character Forge</h1>
     </div>
 </header>
-<br />
-
 
 @if (LoadedCharacters)
 {
@@ -40,20 +40,76 @@
                 </tbody>
             </table>
         </div>
-
-
     </div>
 }
 else if (CharacterSelected)
 {
-<div class="form-group inner-center text-center">
-    <div class="inner-center text-center">
-        <span>Character is loaded.</span>
+    <div class="form-group inner-center text-center">
+        <button class="btn btn-success text-center" @onclick="(() => SaveChanges())">Save All Changes</button>
+        <small class="form-text text-muted">WARNING: Backup save files BEFORE making changes.</small>
+        <hr />
+        <form>
+            <div class="col-lg-10 inner-center">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group text-left">
+                            <label>Character Name</label>
+                            <div class="input-group mb-lg-2">
+                                <span class="form-control">@CharService.Character.Data.Name</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group text-left">
+                            <label>Deaths</label>
+                            <div class="input-group mb-lg-auto">
+                                <span class="form-control">@CharService.Character.Data.Deaths</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group text-left">
+                            <label>Time Since Death</label>
+                            <div class="input-group mb-lg-auto">
+                                <span class="form-control">@CharService.Character.Data.TimeSinceDeath</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg inner-center">
+                <div>
+                    <div class="text-center inner-center">
+                        <label>Inventory Slots</label>
+                        <div class="grid-container inner-center text-center">
+                            @for (int i = 0; i < InventoryRows; i++)
+                            {
+                                for (int ii = 0; ii < InventoryColumns; ii++)
+                                {
+                                    var _pos = new Tuple<int, int>(ii, i);
+                                    var _taken = CharService.Character.Data.Inventory.SingleOrDefault(a => a.Pos.Item1 == _pos.Item1 && a.Pos.Item2 == _pos.Item2);
+
+                                    if (_taken is null)
+                                    {
+                                        <InventorySlotComponent IsEmpty="true" Position="(ii, i)"></InventorySlotComponent>
+                                    }
+                                    else
+                                    {
+                                        var name = Regex.Replace(_taken.Name, "(\\B[A-Z])", " $1");
+                                        <InventorySlotComponent IsEmpty="false" ItemName="@name" Quantity="@_taken.Stack" Position="(ii, i)"></InventorySlotComponent>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr />
+        <hr />
+        <br />
     </div>
-    <br />
-    <button class="btn btn-success text-center" @onclick="(() => SaveChanges())">Save All Changes</button>
-    <small class="form-text text-muted">WARNING: Backup save files BEFORE making changes.</small>
-</div>
 }
 else
 {
@@ -63,7 +119,6 @@ else
             <small class="form-text text-muted">Select the location where the character files are stored for Valheim.</small>
             <small class="form-text text-muted">Example : C:\Users\{usernamehere}\AppData\LocalLow\IronGate\Valheim\characters</small>
         </div>
-
     </div>
 }
 
@@ -89,18 +144,9 @@ else
         margin-left: 200px;
     }
 
-    .changed {
-        background-color: rgb(174, 255, 174);
-    }
-
-    .selectionText {
-        margin: 10px;
-        width: 100px;
-        font-size: 13px;
-    }
-
-    .e-grid td.e-active {
-        background-color: rgba(0, 255, 255, 0.55);
+    .grid-container {
+        display: grid;
+        grid-template-columns: 120px 120px 120px 120px 120px 120px 120px 120px;
     }
 
     .apply-limit {
@@ -118,42 +164,12 @@ else
         font-weight: 600;
         font-size: 15px;
     }
-
-    .e-edit:before {
-        content: '\e78f';
-        font-size: x-large;
-    }
-
-    .cam-table {
-        border: 1.5px solid #212529;
-        margin-right: 4px;
-        box-shadow: rgba(128, 128, 128, 0.43) 4px 4px;
-    }
-
-    .link-outline-primary {
-        color: #212529;
-        border-color: #212529;
-        border: 1px solid #212529;
-        box-shadow: rgba(128, 128, 128, 0.43) 2px 2px;
-        transition: .5s;
-        background-color: white;
-    }
-
-        .link-outline-primary:hover {
-            color: whitesmoke;
-            background-color: #212529;
-            border-color: #212529;
-            border: 1px solid #212529;
-            box-shadow: rgba(128, 128, 128, 1) 3px 3px;
-            transition: .5s;
-        }
 </style>
 
 @code {
     private Character[] Characters;
-    private string[] Beards;
-    private string[] Hairs;
-    private string[] HairColors;
+    int InventoryColumns = 8;
+    int InventoryRows = 4;
 
     string SelectedDirectory = "";
 
@@ -199,13 +215,11 @@ else
 
     }
 
+    //Get the Characters from the selected folder
     private async void GetDirectory()
     {
         try
         {
-            //string _appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            //string _folderPath = System.IO.Path.Combine(_appDataPath, @"\LocalLow\IronGate\Valheim\characters\");
-
             var mainWindow = Electron.WindowManager.BrowserWindows.First();
             var options = new OpenDialogOptions
             {
@@ -220,23 +234,23 @@ else
             if (!string.IsNullOrWhiteSpace(_selectedDirectory))
             {
 
-                String dir = _selectedDirectory; // Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"AppData\LocalLow\IronGate\Valheim\characters");
+                String dir = _selectedDirectory;
 
                 String[] fchFiles = System.IO.Directory.GetFiles(dir, "*.fch");
                 if (fchFiles.Length == 0)
                 {
-                    //MessageBox.Show("No character data files found.", "ERROR", MessageBoxButtons.OK);
-                    //Application.Exit();
+                    toastService.ShowError("No character data files found.", "Error");
+                    return;
                 }
 
-                // Create a Customization.Character class for each identified FCH file and read everything
+                // Create a Character class for each identified FCH file and read everything
                 Characters = new Character[fchFiles.Length];
                 for (int i = 0; i < fchFiles.Length; i++)
                 {
                     byte[] fbytes = System.IO.File.ReadAllBytes(fchFiles[i]);
                     if (fbytes.Length == 0)
                     {
-                        //MessageBox.Show("Could not read file \"" + fchFiles[i] + "\".", "ERROR", MessageBoxButtons.OK);
+                        toastService.ShowError("Could not read file \"" + fchFiles[i] + "\".", "Error");
                         continue;
                     }
 
@@ -246,14 +260,6 @@ else
                     // TODO check if data is correct
                 }
 
-                Beards = ValheimEngine.BeardsUI;
-                Hairs = ValheimEngine.HairsUI;
-
-                HairColors = new string[HairColorPresets.GetHairColorPresets.Count];
-                for (int i = 0; i < HairColorPresets.GetHairColorPresets.Count; i++)
-                    HairColors[i] = HairColorPresets.GetHairColorPresets.ElementAt(i).Name;
-
-                debug = Characters.Length.ToString();
                 LoadedCharacters = true;
                 SelectedDirectory = _selectedDirectory;
 
@@ -276,11 +282,10 @@ else
 
     }
 
+    //Select the character from the table, and show the form
     private void SelectCharacter(Character character)
     {
         CharService.Character = character;
-
-        CharService.KnownMaterials = CharService.Character.Data.Inventory.Select(a => a.Name).Distinct().OrderBy(a => a).ToArray();
 
         CharacterSelected = true;
         LoadedCharacters = false;
@@ -288,6 +293,7 @@ else
         InvokeAsync(StateHasChanged);
     }
 
+    //Save our changes
     private void SaveChanges()
     {
         CharService.WriteCustomization();

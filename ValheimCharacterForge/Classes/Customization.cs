@@ -5,6 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using ValheimCharacterForge.Models;
 
+/// <summary>
+/// Credit to https://github.com/byt3m/Valheim-Character-Editor/ for this code
+/// Stripped and moved blocks of code to other areas / separate files
+/// </summary>
 namespace ValheimCharacterForge.Classes
 {
     class Customization

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Credit to https://github.com/byt3m/Valheim-Character-Editor/ for this code
+/// Stripped code into a new Character class, or into separate files
 /// </summary>
 namespace ValheimCharacterForge.Classes
 {

@@ -1,4 +1,4 @@
-﻿@page "/inventory"
+﻿@page "/skills"
 
 @using ValheimCharacterForge
 @using ValheimCharacterForge.Models
@@ -12,14 +12,8 @@
 {
     <header>
         <div class="container-fluid p-3 text-center page-header">
-            <h1>Inventory Data </h1>
-            <small id="req" class="form-text text-muted">Going higher than max game values may break your save.</small>
-            <div class="row inner-center text-center no-print">
-                <div class="inner-center text-center">
-                    <button class="btn btn-info" @onclick="@(() => {navigationManager.NavigateTo("/inventory/add");})">Add Item</button>
-                </div>
-
-            </div>
+            <h1>Skill Data </h1>
+            <small id="req" class="form-text text-muted">Max Skill Level is 100. Going higher may break your save.</small>
         </div>
     </header>
 
@@ -29,24 +23,18 @@
                 <thead class="thead-dark">
                     <tr>
                         <th scope="col">Name</th>
-                        <th scope="col">Equipped?</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Quality</th>
-                        <th scope="col">Durability</th>
-                        <th scope="col">Remove</th>
+                        <th scope="col">Level</th>
+                        <th scope="col">Little Red Bar</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in CharService.Character.Data.Inventory)
+                    @foreach (var item in CharService.Character.Data.Skills)
                     {
-                    <tr>
-                        <td>@item.Name</td>
-                        <td>@item.Equipped</td>
-                        <td><input type="number" class="form-control" @bind-value="@item.Stack" /></td>
-                        <td><input type="number" class="form-control" @bind-value="@item.Quality" /></td>
-                        <td><input type="number" class="form-control" @bind-value="@item.Durability" /></td>
-                        <td><button class="btn btn-danger" @onclick="@(() => {CharService.Character.Data.Inventory.Remove(item);})">Delete</button></td>
-                    </tr>
+                        <tr>
+                            <td>@item.SkillName</td>
+                            <td><input type="number" max="100" class="form-control" @bind-value="@item.Level" /></td>
+                            <td>@item.Something</td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -121,38 +109,5 @@ else
 </style>
 
 @code {
-    bool IsSaving = false;
-
-
-    [Parameter] public string ID { get; set; }
-    string _id;
-
-    protected override async void OnParametersSet()
-    {
-        try
-        {
-            _id = ID;
-
-            await Task.Run(() => LoadPageDetails().ConfigureAwait(false));
-
-        }
-        catch (Exception ex)
-        {
-            if (ex.InnerException != null)
-            {
-                toastService.ShowError(ex.InnerException.Message, "Error");
-            }
-            else
-            {
-                toastService.ShowError(ex.Message, "Error");
-            }
-        }
-    }
-
-    async Task LoadPageDetails()
-    {
-
-
-    }
 
 }

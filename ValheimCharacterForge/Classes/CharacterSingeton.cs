@@ -6,14 +6,16 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ValheimCharacterForge.Models;
-
+/// <summary>
+/// Credit to https://github.com/byt3m/Valheim-Character-Editor/ for this code
+/// These portions were migrated from other classes
+/// </summary>
 namespace ValheimCharacterForge.Classes
 {
     public class CharacterSingeton
     {
         public Character[] AllCharacters { get; set; }
         public Character Character { get; set; }
-        public string[] KnownMaterials { get; set; }
 
         static public HashSet<HairColorPreset> HairColorPresets = new HashSet<HairColorPreset>
         {
@@ -23,19 +25,6 @@ namespace ValheimCharacterForge.Classes
             new HairColorPreset { Name = "Brown", Red = 0.525f, Green = 0.374f, Blue = 0.26f },
             new HairColorPreset { Name = "White", Red = 0.81f, Green = 0.75f, Blue = 0.57f },
         };
-
-        public bool Initialize(string name)
-        {
-            try
-            {
-                Character = AllCharacters.FirstOrDefault(a => a.Data.Name == name);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
 
         public HairColorPreset FindClosestPreset(Vector3 color)
         {
